@@ -1,20 +1,21 @@
 const userModel = require("../models/userModel")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
+const nodemailer = require("nodemailer")
 
 
 exports.signup = async (req, res) => {
-    const { email, password, name, address, phone, role } = req.body
+    const { email, password, name, address, phoneNumber, role } = req.body
     try {
         const user = await userModel.findOne({ email })
         if (user) return res.status(400).json({ msg: 'User already exists' })
 
-        const newUser = new userModel({ email, password, name, address, phone, role })
+        const newUser = new userModel({ email, password, name, address, phoneNumber, role })
         const salt = await bcrypt.genSalt(10)
         newUser.password = await bcrypt.hash(password, salt)
         await newUser.save()
 
-        res.status(201).json({ msg: 'User registered successfully' })
+        res.status(201).json({ msg: 'User registered successfully', user: newUser })
     } catch (error) {
         return res.status(500).json({ msg: error.message })
     }
@@ -53,10 +54,10 @@ exports.getUserProfile = async (req, res) => {
 }
 
 exports.updateUserProfile = async (req, res) => {
-    const { name, address, phone, email } = req.body
+    const { name, address, phoneNumber, email } = req.body
 
     try {
-        const user = await userModel.findByIdAndUpdate(req.user.id, { name, address, phone, email }, { new: true })
+        const user = await userModel.findByIdAndUpdate(req.user.id, { name, address, phoneNumber, email }, { new: true })
         res.json(user)
     } catch (error) {
         return res.status(500).json({ msg: error.message })
@@ -102,6 +103,63 @@ exports.refreshToken = async (req, res) => {
 
     }
 }
+
+
+exports.sendOtp = async (req, res) => {
+    const { email } = req.body
+
+    try {
+        const user = await userModel.findOne({ email })
+        if (!user) return res.status(404).json({ msg: "user not found" })
+
+
+        otp = Math.floor(100000 + Math.random() * 900000).toString()
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: "val.globalia@gmail.com",
+                pass: "ccbv ccet ekqb nobx",
+
+            }
+        })
+
+        await transporter.sendMail({
+            to: email,
+            subject: "verify email",
+            text: `Your OTP is ${otp}`
+        })
+
+        user.otp = otp
+
+        await user.save()
+
+        return res.status(200).json({ msg: "Otp send Success", user })
+
+
+    } catch (error) {
+        return res.status(500).json({ msg: error.message })
+    }
+}
+
+exports.verifyOtp = async (req, res) => {
+    const { email, otp } = req.body
+    try {
+        const user = await userModel.findOne({ email })
+        if (!user) return res.status(404).json({ msg: "User not found" })
+
+        if (otp == user.otp) {
+            user.otp = null
+            await user.save()
+            return res.status(200).json("Otp verified")
+        } else {
+            return res.status(400).json({ msg: "Invalid Otp" })
+        }
+
+    } catch (error) {
+        return res.status(500).json({ msg: error.message })
+    }
+}
+
 
 exports.logout = async (req, res) => {
     res.clearCookie('jwt', { path: '/' });

@@ -4,8 +4,10 @@ const userRouter = require('./routes/userRoutes');
 const cookieParser = require("cookie-parser")
 const stripe = require("stripe")("sk_test_51PRYHRLdUI6Jl6jNlRSgidkQczf0FNEfTLjKIqRAD1aMZEJMSwfOpAccuwWVU2RcHG7H4yyPkvHUp0gYydBhwJ1g00LGCU4PJn")
 require('dotenv').config();
+const cors = require('cors')
 
 const app = express()
+
 
 // app.post("/check", async (req, res) => {
 
@@ -41,6 +43,7 @@ const app = express()
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors())
 
 app.use("/api/user", userRouter)
 

@@ -11,9 +11,9 @@ const userSchema = new mongoose.Schema({
         country: String,
         zipCode: String
     },
-    phone: String,
+    phoneNumber: String,
     role: { type: String, enum: ['customer', 'vendor', 'admin'], default: "customer" },
-
+    otp: Number
 },
     {
         timestamps: true,
