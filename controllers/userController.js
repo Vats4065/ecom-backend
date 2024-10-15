@@ -5,18 +5,19 @@ const nodemailer = require("nodemailer")
 
 
 exports.signup = async (req, res) => {
-    const { email, password, name, address, phoneNumber, role } = req.body
+    const { email, password, name, address, phoneNumber } = req.body
     try {
         const user = await userModel.findOne({ email })
         if (user) return res.status(400).json({ msg: 'User already exists' })
 
-        const newUser = new userModel({ email, password, name, address, phoneNumber, role })
+        const newUser = new userModel({ email, password, name, address, phoneNumber })
         const salt = await bcrypt.genSalt(10)
         newUser.password = await bcrypt.hash(password, salt)
         await newUser.save()
 
         res.status(201).json({ msg: 'User registered successfully', user: newUser })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ msg: error.message })
     }
 }
@@ -128,6 +129,8 @@ exports.sendOtp = async (req, res) => {
             subject: "verify email",
             text: `Your OTP is ${otp}`
         })
+
+        console.log(otp);
 
         user.otp = otp
 

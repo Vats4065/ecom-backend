@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         zipCode: String
     },
     phoneNumber: String,
-    role: { type: String, enum: ['customer', 'vendor', 'admin'], default: "customer" },
+    role: { type: String, default: "customer" },
     otp: Number
 },
     {
